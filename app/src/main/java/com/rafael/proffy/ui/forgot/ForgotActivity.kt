@@ -1,8 +1,9 @@
 package com.rafael.proffy.ui.forgot
 
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Bundle
-import android.util.Patterns
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -11,6 +12,8 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.addTextChangedListener
 import com.rafael.proffy.R
 import com.rafael.proffy.databinding.ActivityForgotBinding
+import com.rafael.proffy.models.validators.FormValidator
+import com.rafael.proffy.ui.register.RegisterStepTwoActivity
 
 class ForgotActivity : AppCompatActivity() {
 
@@ -30,49 +33,74 @@ class ForgotActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        setupViews()
+        setupValidation()
+    }
 
-        // Definir as cores do botão para os estados
-        val enabledButtonColor = ContextCompat.getColor(this, R.color.green)
+    private fun setupViews() {
+        val enabledButtonColor = ContextCompat.getColor(this, R.color.purple)
         val disabledButtonColor = ContextCompat.getColor(this, R.color.shape_disable)
 
-        val buttonGoBack = binding.buttonGoBack
-        val editTextEmail = binding.textInputEditEmail
-        val buttonSendEmail = binding.buttonSendEmail
+        // Inicialmente desabilitar o botão
+        setButtonState(false, enabledButtonColor, disabledButtonColor)
 
-        buttonGoBack.setOnClickListener {
-            goBack()
+        binding.buttonGoBack.setOnClickListener {
+            finish()
         }
 
-        editTextEmail.addTextChangedListener { text ->
-            val email = text?.toString()?.trim() ?: ""
-            val isValidEmail = isValidEmail(email)
-
-            setButtonState(isValidEmail, enabledButtonColor, disabledButtonColor)
+        binding.buttonSendEmail.setOnClickListener {
+            handleSendEmail()
         }
     }
 
-    private fun goBack() {
-        finish()
+    private fun setupValidation() {
+        val enabledButtonColor = ContextCompat.getColor(this, R.color.purple)
+        val disabledButtonColor = ContextCompat.getColor(this, R.color.shape_disable)
+
+        // Validação para campo Email
+        binding.textInputEditEmail.addTextChangedListener { text ->
+            validateFields(enabledButtonColor, disabledButtonColor)
+        }
     }
 
-    private fun isValidEmail(email: String): Boolean {
-        return email.isNotEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    public fun validateFields(enabledButtonColor: Int, disabledButtonColor: Int) {
+        val textEditEmail = binding.textInputEditEmail.text?.toString()?.trim() ?: ""
+
+        Log.d("forgotActivity", "textEditEmail='$textEditEmail'")
+
+        // Validar email
+        val emailValidation = FormValidator.validateEmail(textEditEmail)
+        if (textEditEmail.isNotEmpty()) {
+            binding.textInputEditEmail.error = if (!emailValidation.isValid) emailValidation.errorMessage else null
+        } else {
+            binding.textInputEditEmail.error = null
+        }
+
+        // Habilitar botão apenas se ambos os campos são válidos E não estão vazios
+        val bothValid = emailValidation.isValid &&
+                textEditEmail.isNotEmpty()
+
+        Log.d("forgotActivity", "emailValid=${emailValidation.isValid} bothValid=$bothValid")
+
+        setButtonState(bothValid, enabledButtonColor, disabledButtonColor)
     }
 
     private fun setButtonState(enabled: Boolean, enabledColor: Int, disabledColor: Int) {
-        val buttonSendEmail = binding.buttonSendEmail
-        buttonSendEmail.isEnabled = enabled
-
+        binding.buttonSendEmail.isEnabled = enabled
         val color = if (enabled) enabledColor else disabledColor
-        buttonSendEmail.backgroundTintList = ColorStateList.valueOf(color)
+        binding.buttonSendEmail.backgroundTintList = ColorStateList.valueOf(color)
+        val textColor = ContextCompat.getColor(this, R.color.shape_01_white)
+        binding.buttonSendEmail.setTextColor(textColor)
 
-        val textColor = if (enabled) {
-            ContextCompat.getColor(this, R.color.shape_01_white)
-        } else {
-            ContextCompat.getColor(this, R.color.text_complement)
-        }
+        Log.d("forgotActivity", "Button enabled: $enabled")
+    }
 
-        buttonSendEmail.setTextColor(textColor)
+    private fun handleSendEmail() {
+        val textEditEmail = binding.textInputEditEmail.text?.toString()?.trim() ?: ""
+
+        val intent = Intent(this, RegisterStepTwoActivity::class.java)
+        intent.putExtra("textEditEmail", textEditEmail)
+        startActivity(intent)
     }
 }
 
