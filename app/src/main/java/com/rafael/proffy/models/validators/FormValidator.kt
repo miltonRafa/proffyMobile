@@ -38,7 +38,7 @@ object FormValidator {
     fun validateName(nome: String): ValidationResult {
         return when {
             nome.isBlank() -> ValidationResult.error("Nome é obrigatório")
-            nome.length < 2 -> 
+            nome.length < 4 -> 
                 ValidationResult.error("O nome deve conter pelo menos 2 caracteres")
             nome.length > 50 -> 
                 ValidationResult.error("O nome deve conter no máximo 50 caracteres")
@@ -55,7 +55,7 @@ object FormValidator {
     fun validateLastName(sobrenome: String): ValidationResult {
         return when {
             sobrenome.isBlank() -> ValidationResult.error("Sobrenome é obrigatório")
-            sobrenome.length < 2 -> 
+            sobrenome.length < 4 -> 
                 ValidationResult.error("O sobrenome deve conter pelo menos 2 caracteres")
             sobrenome.length > 50 -> 
                 ValidationResult.error("O sobrenome deve conter no máximo 50 caracteres")
